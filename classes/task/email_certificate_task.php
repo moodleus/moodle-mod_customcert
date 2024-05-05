@@ -55,23 +55,23 @@ class email_certificate_task extends \core\task\scheduled_task {
         $certificateexecutionperiod = (int)get_config('customcert', 'certificateexecutionperiod');
 
         // Get the last processed batch and total certificates to process.
-        $taskprogress = $DB->get_record('customcert_email_task_prgrs', ['taskname' => 'email_certificate_task']);
+        $taskprogress = $DB->get_record('customcert_task_progress', ['taskname' => 'email_certificate_task']);
         $lastprocessed = $taskprogress->last_processed;
 
         // Get all the certificates that have requested someone get emailed.
         $emailotherslengthsql = $DB->sql_length('c.emailothers');
         $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
-                       co.fullname as coursefullname, co.shortname as courseshortname
-                  FROM {customcert} c
-                  JOIN {customcert_templates} ct
+                    co.fullname as coursefullname, co.shortname as courseshortname
+                FROM {customcert} c
+                JOIN {customcert_templates} ct
                     ON c.templateid = ct.id
-                  JOIN {course} co
+                JOIN {course} co
                     ON c.course = co.id";
 
         // Add JOIN with mdl_course_categories to exclude certificates from hidden courses.
         $sql .= " JOIN {course_categories} cat ON co.category = cat.id";
 
-        // Only get certificates where we have to email someone.
+        // Add conditions to exclude certificates from hidden courses.
         $sql .= " WHERE (c.emailstudents = :emailstudents
                  OR c.emailteachers = :emailteachers
                  OR $emailotherslengthsql >= 3)";
@@ -101,7 +101,7 @@ class email_certificate_task extends \core\task\scheduled_task {
 
         // Store the total count of certificates in the database.
         $totalcertificatestoprocess = count($customcerts);
-        $DB->set_field('customcert_email_task_prgrs', 'total_certificate_to_process', $totalcertificatestoprocess, [
+        $DB->set_field('customcert_task_progress', 'total_certificate_to_process', $totalcertificatestoprocess, [
             'taskname' => 'email_certificate_task',
         ]);
 
@@ -174,9 +174,11 @@ class email_certificate_task extends \core\task\scheduled_task {
 
             // Now, get a list of users who can view and issue the certificate but have not yet.
             // Get users with the mod/customcert:receiveissue capability in the Custom Certificate module context.
-            $userswithissue = get_users_by_capability($context, 'mod/customcert:receiveissue');
+            $userswithissue = get_users_by_capability($context, 'mod/customcert:receiveissue',
+            'u.id, username, firstname, lastname, email, firstnamephonetic, lastnamephonetic, middlename, alternatename');
             // Get users with mod/customcert:view capability.
-            $userswithview = get_users_by_capability($context, 'mod/customcert:view');
+            $userswithview = get_users_by_capability($context, 'mod/customcert:view',
+            'u.id, username, firstname, lastname, email, firstnamephonetic, lastnamephonetic, middlename, alternatename');
             // Users with both mod/customcert:view and mod/customcert:receiveissue cabapilities.
             $userswithissueview = array_intersect_key($userswithissue, $userswithview);
 
@@ -311,17 +313,14 @@ class email_certificate_task extends \core\task\scheduled_task {
                 // Set the field so that it is emailed.
                 $issueids[] = $user->issueid;
             }
-
             if (!empty($issueids)) {
-                list($sql, $params) = $DB->get_in_or_equal($issueids, SQL_PARAMS_NAMED, 'id');
-                $DB->set_field_select('customcert_issues', 'emailed', 1, 'id ' . $sql, $params);
+                $DB->set_field_select('customcert_issues', 'emailed', 1, 'id IN (' . implode(',', $issueids) . ')');
             }
         }
-
         // Update the last processed position, if run in batches.
         if ($certificatesperrun > 0) {
             $newlastprocessed = $lastprocessed + count($certificates);
-            $DB->set_field('customcert_email_task_prgrs', 'last_processed', $newlastprocessed, [
+            $DB->set_field('customcert_task_progress', 'last_processed', $newlastprocessed, [
                 'taskname' => 'email_certificate_task',
             ]);
         }

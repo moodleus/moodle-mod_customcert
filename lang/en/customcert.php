@@ -235,3 +235,12 @@ $string['verifycertificateanyone_help'] = 'This setting enables anyone with the 
 $string['verifycertificatedesc'] = 'This link will take you to a new screen where you will be able to verify certificates on the site';
 $string['width'] = 'Width';
 $string['width_help'] = 'This is the width of the certificate PDF in mm. For reference an A4 piece of paper is 210mm wide and a letter is 216mm wide.';
+
+$string['certificatesperrun'] = 'Certificates per run';
+$string['certificatesperrun_desc'] = 'Enter the number of certificates to process per scheduled task run <b>where 0 means it will process all certificates</b>.';
+$string['includeinnotvisiblecourses'] = 'Include certificates in hidden courses';
+$string['includeinnotvisiblecourses_desc'] = 'Check this box to include certificates in courses that are not visible to the user.';
+$string['certificateexecutionperiod'] = 'Certificate execution period';
+$string['certificateexecutionperiod_desc'] = 'Specify the period for which certificates should be executed based on their end date. <b>Set to 0 to execute all certificates, regardless of their age.</b>';
+$string['scheduledtaskconfigheading'] = 'Scheduled task configuration';
+$string['scheduledtaskconfigdesc'] = 'Configure the settings for the scheduled task that processes certificates.';
