@@ -340,7 +340,7 @@ final class email_certificate_task_test extends advanced_testcase {
      * Tests the email certificate task when the certificate is not visible.
      *
      * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task     
+     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_students_not_visible(): void {
         global $DB;
