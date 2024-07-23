@@ -98,8 +98,8 @@ class issue_certificates_task extends \core\task\scheduled_task {
 
         foreach ($customcerts as $customcert) {
             // Check if the certificate is hidden, quit early.
-            $fastmoduleinfo = get_fast_modinfo($customcert->courseid)->instances['customcert'][$customcert->id];
-            if (!$fastmoduleinfo->visible) {
+            $cm = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course)[1];
+            if (!$cm->visible) {
                 continue;
             }
 
@@ -129,18 +129,17 @@ class issue_certificates_task extends \core\task\scheduled_task {
             $userswithmanage = get_users_by_capability($context, 'mod/customcert:manage', 'u.id');
 
             // Get the context of the Custom Certificate module.
-            $cm = get_coursemodule_from_instance('customcert', $customcert->id, $customcert->course);
-            $context = \context_module::instance($cm->id);
+            $cmcontext = \context_module::instance($cm->id);
 
             // Now, get a list of users who can view and issue the certificate but have not yet.
             // Get users with the mod/customcert:receiveissue capability in the Custom Certificate module context.
-            $userswithissue = get_users_by_capability($context, 'mod/customcert:receiveissue');
+            $userswithissue = get_users_by_capability($cmcontext, 'mod/customcert:receiveissue');
             // Get users with mod/customcert:view capability.
-            $userswithview = get_users_by_capability($context, 'mod/customcert:view');
+            $userswithview = get_users_by_capability($cmcontext, 'mod/customcert:view');
             // Users with both mod/customcert:view and mod/customcert:receiveissue cabapilities.
             $userswithissueview = array_intersect_key($userswithissue, $userswithview);
 
-            $infomodule = new \core_availability\info_module($fastmoduleinfo);
+            $infomodule = new \core_availability\info_module($cm);
             // Filter who can't access due to availability restriction, from the full list.
             $userscanissue = $infomodule->filter_user_list($userswithissueview);
             foreach ($userscanissue as $enroluser) {
