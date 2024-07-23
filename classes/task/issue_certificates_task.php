@@ -97,12 +97,13 @@ class issue_certificates_task extends \core\task\scheduled_task {
         }
 
         foreach ($customcerts as $customcert) {
+        
             // Check if the certificate is hidden, quit early.
             $cm = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course)[1];
             if (!$cm->visible) {
                 continue;
             }
-
+            
             // Do not process an empty certificate.
             $sql = "SELECT ce.*
                       FROM {customcert_elements} ce
@@ -167,7 +168,7 @@ class issue_certificates_task extends \core\task\scheduled_task {
 
                 // Ok, issue them the certificate.
                 $issueid = empty($issue) ?
-                    \mod_customcert\certificate::issue_certificate($customcert->id, $enroluser->id): $issue->id;
+                    \mod_customcert\certificate::issue_certificate($customcert->id, $enroluser->id) : $issue->id;
 
                 // Validate issueid and one last check for emailed.
                 if (!empty($issueid) && empty($issue->emailed)) {
@@ -182,6 +183,6 @@ class issue_certificates_task extends \core\task\scheduled_task {
                     }
                 }
             }
-        } 
+        }
     }
 }

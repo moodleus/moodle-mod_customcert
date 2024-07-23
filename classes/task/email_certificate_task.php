@@ -65,7 +65,7 @@ class email_certificate_task extends \core\task\adhoc_task {
         $page = new \moodle_page();
         $htmlrenderer = $page->get_renderer('mod_customcert', 'email', 'htmlemail');
         $textrenderer = $page->get_renderer('mod_customcert', 'email', 'textemail');
-    
+
         // Get the context.
         $context = \context::instance_by_id($customcert->contextid);
 
@@ -172,7 +172,7 @@ class email_certificate_task extends \core\task\adhoc_task {
             }
         }
 
-        // Set the field so that it is emailed.    
+        // Set the field so that it is emailed.
         $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
     }
 }
